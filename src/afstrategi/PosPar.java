@@ -4,7 +4,7 @@ package afstrategi;
 public class PosPar
 {
     private int x;
-    private int y; 
+    private int y;
     
     public PosPar(int x, int y)
     {
@@ -20,5 +20,5 @@ public class PosPar
     public int getY()
     {
         return y;
-    }   
+    }  
 }

@@ -52,7 +52,7 @@ public class Ko extends Gubbe{
             // Om målet ruta ej är OK
             else if(!checkaOmRutaÄrOk(banan, new PosPar(xKordMål, yKordMål), false))
             {
-                hittaVäg(banan);
+                vägVektor = hittaVäg(new PosPar(xKord, yKord), new PosPar(xKordMål, yKordMål), banan);
                 int slutgiltigtAvståndX = 
                         Math.abs(vägVektor.get(vägVektor.size() - 1).getX() - xKordMål);
                 int slutgiltigtAvståndY = 
@@ -126,7 +126,7 @@ public class Ko extends Gubbe{
             PosPar tempPosPar = hittaNärmasteByggnad(spelaren, "Lada");
             xKordMål = tempPosPar.getX();
             yKordMål = tempPosPar.getY();
-            hittaVäg(banan);
+            vägVektor = hittaVäg(new PosPar(xKord, yKord), new PosPar(xKordMål, yKordMål), banan);
         }
     }
     
@@ -145,7 +145,7 @@ public class Ko extends Gubbe{
         {
             xKordMål = tempPosPar.getX();
             yKordMål = tempPosPar.getY();
-            hittaVäg(banan);
+            vägVektor = hittaVäg(new PosPar(xKord, yKord), new PosPar(xKordMål, yKordMål), banan);
         }
     }
 }

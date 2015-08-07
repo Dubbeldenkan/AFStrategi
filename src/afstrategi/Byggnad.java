@@ -206,16 +206,16 @@ public class Byggnad extends SpelarEnhet{
                 }
             }
         }
-        if((tidSedanAnfall >= anfallsIntervall) && !(anfallsEnhet == null))
-        {
-            if(spelaren.getAntalSkott() < AFStrategi.MAXSKOTT)
-            {
-                spelaren.addSkott(new Skott(xKord, yKord, spelaren,
-                    anfallsEnhet.getXKord(), anfallsEnhet.getYKord(), banan,
-                attackVärde, this));
-                tidSedanAnfall = 0;
-            }
-        }
+//        if((tidSedanAnfall >= anfallsIntervall) && !(anfallsEnhet == null))
+//        {
+//            if(spelaren.getAntalSkott() < AFStrategi.MAXSKOTT)
+//            {
+//                spelaren.addSkott(new Skott(xKord, yKord, spelaren,
+//                    anfallsEnhet.getXKord(), anfallsEnhet.getYKord(), banan,
+//                attackVärde, this));
+//                tidSedanAnfall = 0;
+//            }
+//        }
         else
         {
             tidSedanAnfall = tidSedanAnfall + (double) AFStrategi.SLEEPTIME/1000;

@@ -54,7 +54,6 @@ public class Skott extends Gubbe{
         }
     }
     
-    @Override
     public PosPar hittaNästaRuta(Bana Banan, PosPar posPar)
     {
         int xArg = posPar.getX();
