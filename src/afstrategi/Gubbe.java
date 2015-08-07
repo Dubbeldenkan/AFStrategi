@@ -3,6 +3,7 @@ import java.awt.geom.AffineTransform;
 import java.awt.image.AffineTransformOp;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Random;
 
 public class Gubbe extends SpelarEnhet{
@@ -31,7 +32,7 @@ public class Gubbe extends SpelarEnhet{
     {
         xKordMål = xMål;
         yKordMål = yMål;
-        hittaVäg(Banan);
+        vägVektor = hittaVäg(new PosPar(xKord, yKord), new PosPar(xKordMål, yKordMål), Banan);
     }
     
     public int getXMål()
@@ -141,25 +142,25 @@ public class Gubbe extends SpelarEnhet{
         }
     }
     
-    public void FlyttaGubbe(Bana Banan, Spelare spelaren)
+    public void FlyttaGubbe(Bana banan, Spelare spelaren)
     {
         if(((!vägVektor.isEmpty()))
                 && (tidSedanFlytt > väntaFörFlytt))
         {
             int tempXRikt = vägVektor.get(0).getX() - xKord;
             int tempYRikt = vägVektor.get(0).getY() - yKord;
-            if(checkaOmRutaÄrOk(Banan, new PosPar(xKord + tempXRikt, yKord + tempYRikt), false))
+            if(checkaOmRutaÄrOk(banan, new PosPar(xKord + tempXRikt, yKord + tempYRikt), false))
             {
                 addXKord(tempXRikt);
                 addYKord(tempYRikt);
                 transformeraBild();
                 vägVektor.remove(0);
                 setVäntaFörFlyttNoll();
-                Banan.uppdateraMetaBana(spelaren);
+                banan.uppdateraMetaBana(spelaren);
             }
-            else if(!checkaOmRutaÄrOk(Banan, new PosPar(xKordMål, yKordMål), false))
+            else if(!checkaOmRutaÄrOk(banan, new PosPar(xKordMål, yKordMål), false))
             {
-                hittaVäg(Banan);
+                vägVektor = hittaVäg(new PosPar(xKord, yKord), new PosPar(xKordMål, yKordMål), banan);
                 int slutgiltigtAvståndX = 
                         Math.abs(vägVektor.get(vägVektor.size() - 1).getX() - xKordMål);
                 int slutgiltigtAvståndY = 
@@ -254,133 +255,237 @@ public class Gubbe extends SpelarEnhet{
 //        return posPar;
 //    }
     
-    public PosPar hittaNästaRuta(Bana Banan, PosPar posPar)
-    {
-        int xArg = posPar.getX();
-        int yArg = posPar.getY();
-        int xFlytta = 0;
-        if (xKordMål - xArg != 0)
-        {
-            xFlytta = ((xKordMål - xArg)/
-                            (Math.abs(xArg - xKordMål)));
-        }
-        int yFlytta = 0;
-        if ((yKordMål - yArg) != 0)
-        {
-            yFlytta = ((yKordMål - yArg)/
-                            (Math.abs(yArg - yKordMål)));
-        }
-        Random randomGenerator = new Random();
-        boolean yFlyttaOk = checkaOmRutaÄrOk(Banan, 
-                new PosPar(posPar.getX(), posPar.getY() + yFlytta), true);
-        boolean xFlyttaOk = checkaOmRutaÄrOk(Banan, 
-                new PosPar(posPar.getX() + xFlytta, posPar.getY()), true);
-        int xYSkillnad = (Math.abs(xKordMål - xArg) -
-                Math.abs(yArg - yKordMål));
-        if((xYSkillnad == 0) && 
-                (randomGenerator.nextInt(2) == 1) &&
-                yFlyttaOk && xFlyttaOk)
-        {
-            posPar = new PosPar(xArg + xFlytta, yArg);
-        }
-        else if(((xYSkillnad <= 0) || !xFlyttaOk) && yFlyttaOk)
-        {
-            posPar = new PosPar(xArg, yArg + yFlytta);
-        }
-        else if(xFlyttaOk)
-        {
-            posPar = new PosPar(xArg + xFlytta, yArg);
-        }
-        //Om XKord är rätt men YKord inte kan flyttas på
-        else if((!yFlyttaOk) && (xArg == xKordMål))
-        {
-            if(checkaOmRutaÄrOk(Banan, new PosPar(posPar.getX() + 1, posPar.getY()), true) &&
-                    checkaOmRutaÄrOk(Banan, new PosPar(posPar.getX() - 1, posPar.getY()), true))
-            {
-                int nyXFlytta = 1 - randomGenerator.nextInt(2)*2;
-                posPar = new PosPar(xArg + nyXFlytta, yArg);
-            }
-            else if(checkaOmRutaÄrOk(Banan, new PosPar(posPar.getX() + 1, posPar.getY()), true))
-            {
-                posPar = new PosPar(xArg + 1, yArg);
-            }
-            else if(checkaOmRutaÄrOk(Banan, new PosPar(posPar.getX() - 1, posPar.getY()), true))
-            {
-                posPar = new PosPar(xArg - 1, yArg);
-            }
-        }
-        else if((!xFlyttaOk) && (yArg == yKordMål))
-        {
-            if(checkaOmRutaÄrOk(Banan, new PosPar(posPar.getX(), posPar.getY() + 1), true) &&
-                    checkaOmRutaÄrOk(Banan, new PosPar(posPar.getX(), posPar.getY() - 1), true))
-            {
-                int nyYFlytta = 1 - randomGenerator.nextInt(2)*2;
-                posPar = new PosPar(xArg, yArg + nyYFlytta);
-            }
-            else if(checkaOmRutaÄrOk(Banan, new PosPar(posPar.getX(), posPar.getY() + 1), true))
-            {
-                posPar = new PosPar(xArg, yArg  + 1);
-            }
-            else if(checkaOmRutaÄrOk(Banan, new PosPar(posPar.getX(), posPar.getY() - 1), true))
-            {
-                posPar = new PosPar(xArg, yArg  - 1);
-            }
-        }
-        return posPar;
-    }
+//    public PosPar hittaNästaRuta(Bana Banan, PosPar posPar)
+//    {
+//        int xArg = posPar.getX();
+//        int yArg = posPar.getY();
+//        int xFlytta = 0;
+//        if (xKordMål - xArg != 0)
+//        {
+//            xFlytta = ((xKordMål - xArg)/
+//                            (Math.abs(xArg - xKordMål)));
+//        }
+//        int yFlytta = 0;
+//        if ((yKordMål - yArg) != 0)
+//        {
+//            yFlytta = ((yKordMål - yArg)/
+//                            (Math.abs(yArg - yKordMål)));
+//        }
+//        Random randomGenerator = new Random();
+//        boolean yFlyttaOk = checkaOmRutaÄrOk(Banan, 
+//                new PosPar(posPar.getX(), posPar.getY() + yFlytta), true);
+//        boolean xFlyttaOk = checkaOmRutaÄrOk(Banan, 
+//                new PosPar(posPar.getX() + xFlytta, posPar.getY()), true);
+//        int xYSkillnad = (Math.abs(xKordMål - xArg) -
+//                Math.abs(yArg - yKordMål));
+//        if((xYSkillnad == 0) && 
+//                (randomGenerator.nextInt(2) == 1) &&
+//                yFlyttaOk && xFlyttaOk)
+//        {
+//            posPar = new PosPar(xArg + xFlytta, yArg);
+//        }
+//        else if(((xYSkillnad <= 0) || !xFlyttaOk) && yFlyttaOk)
+//        {
+//            posPar = new PosPar(xArg, yArg + yFlytta);
+//        }
+//        else if(xFlyttaOk)
+//        {
+//            posPar = new PosPar(xArg + xFlytta, yArg);
+//        }
+//        //Om XKord är rätt men YKord inte kan flyttas på
+//        else if((!yFlyttaOk) && (xArg == xKordMål))
+//        {
+//            if(checkaOmRutaÄrOk(Banan, new PosPar(posPar.getX() + 1, posPar.getY()), true) &&
+//                    checkaOmRutaÄrOk(Banan, new PosPar(posPar.getX() - 1, posPar.getY()), true))
+//            {
+//                int nyXFlytta = 1 - randomGenerator.nextInt(2)*2;
+//                posPar = new PosPar(xArg + nyXFlytta, yArg);
+//            }
+//            else if(checkaOmRutaÄrOk(Banan, new PosPar(posPar.getX() + 1, posPar.getY()), true))
+//            {
+//                posPar = new PosPar(xArg + 1, yArg);
+//            }
+//            else if(checkaOmRutaÄrOk(Banan, new PosPar(posPar.getX() - 1, posPar.getY()), true))
+//            {
+//                posPar = new PosPar(xArg - 1, yArg);
+//            }
+//        }
+//        else if((!xFlyttaOk) && (yArg == yKordMål))
+//        {
+//            if(checkaOmRutaÄrOk(Banan, new PosPar(posPar.getX(), posPar.getY() + 1), true) &&
+//                    checkaOmRutaÄrOk(Banan, new PosPar(posPar.getX(), posPar.getY() - 1), true))
+//            {
+//                int nyYFlytta = 1 - randomGenerator.nextInt(2)*2;
+//                posPar = new PosPar(xArg, yArg + nyYFlytta);
+//            }
+//            else if(checkaOmRutaÄrOk(Banan, new PosPar(posPar.getX(), posPar.getY() + 1), true))
+//            {
+//                posPar = new PosPar(xArg, yArg  + 1);
+//            }
+//            else if(checkaOmRutaÄrOk(Banan, new PosPar(posPar.getX(), posPar.getY() - 1), true))
+//            {
+//                posPar = new PosPar(xArg, yArg  - 1);
+//            }
+//        }
+//        return posPar;
+//    }
+//    
+//    @Override
+//    public boolean checkaOmRutaÄrOk(Bana banan, PosPar posPar, boolean läggTillNy)
+//    {
+//        //läggTillNy används då man testar för att lägga till en ny ruta
+//        int xArg = posPar.getX();
+//        int yArg = posPar.getY();
+//        return ((yArg >= 0) &&
+//                (yArg <= banan.getYLängd()) &&
+//                (xArg >= 0) &&
+//                    (xArg <= banan.getXLängd()) &&
+//                (banan.getBanMatris(xArg,
+//                        yArg) == 0) &&
+//                (banan.getMetaBanMatris(xArg,
+//                        yArg).getÄrDummy()) && 
+//                ((banan.getNaturBanMatris(xArg, 
+//                        yArg).getÄrDummy()) ||
+//                (!banan.getNaturBanMatris(xArg, 
+//                        yArg).getÄrHinder())) &&
+//                (!läggTillNy ||
+//                !checkaOmRutanFinns(xArg, yArg)));
+//    }
+//    
+//    @Override
+//    public boolean checkaOmRutanFinns(int xArg, int yArg)
+//    {
+//        boolean Svar = false;
+//        for(int rutIndex = 0; rutIndex < vägVektor.size(); rutIndex++)
+//        {
+//            if((vägVektor.get(rutIndex).getX() == xArg) &&
+//                    (vägVektor.get(rutIndex).getY() == yArg))
+//            {
+//                Svar = true;
+//                break;
+//            }
+//        }
+//        return Svar;
+//    }
+//    
+//    public void hittaVäg(Bana banan)
+//    {
+//        vägVektor.clear();
+//        PosPar posPar;
+//        int senastXKord = getXKord();
+//        int senastYKord = getYKord();
+//        while(((senastXKord != xKordMål) ||
+//                (senastYKord != yKordMål)) && (vägVektor.size() < 1000))
+//        {
+//            posPar = hittaNästaRuta(banan, new PosPar(senastXKord, senastYKord));
+//            vägVektor.add(posPar);
+//            senastXKord = posPar.getX();
+//            senastYKord = posPar.getY();
+//        } 
+//    }
     
-    @Override
-    public boolean checkaOmRutaÄrOk(Bana banan, PosPar posPar, boolean läggTillNy)
-    {
-        //läggTillNy används då man testar för att lägga till en ny ruta
-        int xArg = posPar.getX();
-        int yArg = posPar.getY();
-        return ((yArg >= 0) &&
-                (yArg <= banan.getYLängd()) &&
-                (xArg >= 0) &&
-                    (xArg <= banan.getXLängd()) &&
-                (banan.getBanMatris(xArg,
-                        yArg) == 0) &&
-                (banan.getMetaBanMatris(xArg,
-                        yArg).getÄrDummy()) && 
-                ((banan.getNaturBanMatris(xArg, 
-                        yArg).getÄrDummy()) ||
-                (!banan.getNaturBanMatris(xArg, 
-                        yArg).getÄrHinder())) &&
-                (!läggTillNy ||
-                !checkaOmRutanFinns(xArg, yArg)));
-    }
+//    @Override
+//    public boolean checkaOmRutaÄrOk(Bana banan, PosPar posPar)
+//    {
+//        //läggTillNy används då man testar för att lägga till en ny ruta
+//        int xArg = posPar.getX();
+//        int yArg = posPar.getY();
+//        return ((yArg >= 0) &&
+//                (yArg <= banan.getYLängd()) &&
+//                (xArg >= 0) &&
+//                    (xArg <= banan.getXLängd()) &&
+//                (banan.getBanMatris(xArg,
+//                        yArg) == 0) &&
+//                (banan.getMetaBanMatris(xArg,
+//                        yArg).getÄrDummy()) && 
+//                ((banan.getNaturBanMatris(xArg, 
+//                        yArg).getÄrDummy()) ||
+//                (!banan.getNaturBanMatris(xArg, 
+//                        yArg).getÄrHinder())));
+//    }
     
-    @Override
-    public boolean checkaOmRutanFinns(int xArg, int yArg)
-    {
-        boolean Svar = false;
-        for(int rutIndex = 0; rutIndex < vägVektor.size(); rutIndex++)
-        {
-            if((vägVektor.get(rutIndex).getX() == xArg) &&
-                    (vägVektor.get(rutIndex).getY() == yArg))
+    /*
+    tar två pospar sammanbinder via hypontenusan, om den stöter på hinder följer
+    utmed båda sidor. ifall upp och ner eller höger och vänster tar ut varandra 
+    leta optimiering genom att kalla sig själv med slut och start.
+    */
+    public ArrayList <PosPar> hittaVäg(PosPar start, PosPar mål, Bana banan){
+        ArrayList <PosPar> slutVäg = new ArrayList<PosPar>();
+        ArrayList <ParPosPar> slutenLista = new ArrayList<ParPosPar>();
+        ArrayList <ParPosPar> öppenLista = new ArrayList<ParPosPar>();
+        PosPar aktuellRuta = start;
+        öppenLista.add(new ParPosPar(start, start ,mål, -1));
+        while(!öppenLista.isEmpty()){
+            Collections.sort(öppenLista);
+            slutenLista.add(öppenLista.get(0));
+            aktuellRuta = öppenLista.get(0).getPos();
+            if(aktuellRuta.getX() == mål.getX() && aktuellRuta.getY() == mål.getY())
             {
-                Svar = true;
                 break;
             }
+            öppenLista.remove(0);
+            ArrayList <ParPosPar> tempÖppenLista = new ArrayList<ParPosPar>();
+            tempÖppenLista = genereraGrannar(slutenLista, öppenLista, aktuellRuta, banan, mål);
+            for(ParPosPar granne : tempÖppenLista)
+            {
+               öppenLista.add(granne);
+            }
         }
-        return Svar;
+        ParPosPar aktuelltParPosPar = öppenLista.get(0);
+        slutVäg.add(0, mål);
+        while(aktuelltParPosPar.getFörälder() != start)
+        {
+            for (ParPosPar testPar : slutenLista){
+                if (testPar.getPos() == aktuelltParPosPar.getFörälder()){
+                    aktuelltParPosPar = testPar;
+                    slutVäg.add(0, aktuelltParPosPar.getPos());
+                }
+            }
+
+        }
+        return slutVäg;
     }
     
-    public void hittaVäg(Bana banan)
+    private ArrayList <ParPosPar> genereraGrannar(ArrayList <ParPosPar> slutenLista, ArrayList <ParPosPar> öppenLista,
+            PosPar aktuellRuta, Bana banan, PosPar mål)
     {
-        vägVektor.clear();
-        PosPar posPar;
-        int senastXKord = getXKord();
-        int senastYKord = getYKord();
-        while(((senastXKord != xKordMål) ||
-                (senastYKord != yKordMål)) && (vägVektor.size() < 1000))
+        ArrayList <ParPosPar> returLista = new ArrayList<ParPosPar>();;
+        //en lista över de fyra grannarna: (0,1),(1,0),(-1,0),(0,-1)
+        int[][] fyraRiktningar = {{0,-1},{0,1},{1,0},{-1,0}};
+        for (int[] riktning : fyraRiktningar) {
+            PosPar aktuellGranne = new PosPar(aktuellRuta.getX() + riktning[0], aktuellRuta.getY() + riktning[1]);
+            if(checkaOmRutaÄrOk(banan,
+                    aktuellGranne, true) && !ärILista(slutenLista, aktuellGranne) && !ärILista(öppenLista, aktuellGranne))
+            {
+                ParPosPar förälder = hittaFörälder(slutenLista, aktuellGranne);
+                returLista.add(new ParPosPar(aktuellGranne, förälder.getPos(), mål, förälder.getSträcka()));
+            }
+        }
+        return returLista; 
+    }
+    
+    private boolean ärILista(ArrayList <ParPosPar>lista, PosPar testRuta){
+        for (ParPosPar testPar : lista) {
+            if(testPar.getPos()== testRuta){
+                return true;
+            }
+        }
+        return false;
+    }
+    private ParPosPar hittaFörälder(ArrayList <ParPosPar> slutenLista,
+            PosPar aktuellRuta)
+    {
+        ParPosPar förälder = null;
+        for(int index = 0; index < slutenLista.size(); index++)
         {
-            posPar = hittaNästaRuta(banan, new PosPar(senastXKord, senastYKord));
-            vägVektor.add(posPar);
-            senastXKord = posPar.getX();
-            senastYKord = posPar.getY();
-        } 
+            if(((Math.abs(slutenLista.get(index).getPos().getX() - aktuellRuta.getX())
+                    + Math.abs(slutenLista.get(index).getPos().getY() - aktuellRuta.getY())) == 1)
+                    && ((förälder == null) || (slutenLista.get(index).getSträcka() < förälder.getSträcka())))
+            {
+                förälder = slutenLista.get(index);
+            }
+        }
+        return förälder;
     }
     
     @Override
